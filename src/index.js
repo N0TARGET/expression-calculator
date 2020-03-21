@@ -3,7 +3,7 @@ function eval() {
     return;
 }
 
-const regMultiply = /[-]*[\d.]+[*\/][-]*[\d.]+/;
+var regMultiply = /[-]*[\d.]+[*\/][-]*[\d.]+/;
 
 function expressionCalculator(expr) {
     expr = expr.replace(/\s/g, "");
@@ -23,7 +23,7 @@ function calculateExpression(splitExpression) {
     var frame = '';
 
     for (var i = 0; i < splitExpression.length; i++) {
-        const symbol = splitExpression[i];
+        var symbol = splitExpression[i];
         if (symbol === "(") {
             stack.push(frame);
             frame = '';
