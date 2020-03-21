@@ -1,12 +1,14 @@
-// function eval() {
-//     // Do not use eval!!!
-//     return;
-// }
+function eval() {
+    // Do not use eval!!!
+    return;
+}
 
-const regMultiply = /[-]*[\d.]+[\*\/][-]*[\d.]+/;
+const regMultiply = /[-]*[\d.]+[*\/][-]*[\d.]+/;
 
 function expressionCalculator(expr) {
-    let splitExpression = expr.split('');
+    expr = expr.replace(/\s/g, "");
+
+    var splitExpression = expr.split('');
 
     var openedCount = (expr.match(/\(/g) || []).length;
     var closedCount = (expr.match(/\)/g) || []).length;
@@ -15,14 +17,12 @@ function expressionCalculator(expr) {
     return calculateExpression(splitExpression);
 }
 
-console.log(expressionCalculator("2+2-(3+5+(-7.2/7.2*-2.45+7*-2+5))+7+(6-2)"));
-
 function calculateExpression(splitExpression) {
 
     var stack = [];
     var frame = '';
 
-    for (let i = 0; i < splitExpression.length; i++) {
+    for (var i = 0; i < splitExpression.length; i++) {
         const symbol = splitExpression[i];
         if (symbol === "(") {
             stack.push(frame);
@@ -30,32 +30,31 @@ function calculateExpression(splitExpression) {
             continue;
         }
         if (symbol === ")") {
-            if (frame !== '') {
-                let calculatedFrame = frame === '' ? '' : String(calculateFrame(frame));
-                let prevFrame = stack.pop() + calculatedFrame;
-                stack.push(prevFrame);
-                frame = '';
-            } else {
-                frame = calculateFrame(stack.pop());
-                stack.push(frame);
-            }
+            if (frame === '') frame = stack.pop();
+
+            var calculatedFrame = String(calculateFrame(String(frame)));
+            var pop1 = stack.pop();
+            var prevFrame = String(pop1) + String(calculatedFrame);
+            stack.push(prevFrame);
+            frame = '';
+
             continue;
         }
         if (splitExpression[i - 1] === ")") {
             frame = stack.pop();
         }
-        frame = frame + symbol;
+        frame = frame + String(symbol);
     }
 
     if (stack.length === 0) {
         stack.push(frame);
     } else {
-        stack.push(stack.pop() + frame);
+        stack.push(String(stack.pop()) + String(frame));
     }
+    
+    var clearSigns1 = clearSigns(stack.pop());
 
-    console.log(stack);
-
-    return calculateFrame(stack.pop());
+    return calculateFrame(clearSigns1);
 }
 
 function clearSigns(readyFrame) {
@@ -66,50 +65,44 @@ function clearSigns(readyFrame) {
 }
 
 function calculateFrame(readyFrame) {
-
-    console.log('ready frame   ' + readyFrame);
+    readyFrame = clearSigns(readyFrame);
     readyFrame = findAndCalculate(readyFrame, regMultiply, /[*\/]+/);
     readyFrame = clearSigns(readyFrame);
 
-    // let res = 0;
-    // let sign = '';
-    // let b = '';
-    //
-    // if (isNumber(readyFrame[0])) readyFrame = '+' + readyFrame;
-    //
-    // for (let i = 0; i < readyFrame.length; i++) {
-    //     let currentSymbol = readyFrame[i];
-    //
-    //     if (isSign(currentSymbol)) {
-    //         sign = currentSymbol;
-    //     } else {
-    //         if (b !== '') {
-    //             res = calculate(res, sign, b);
-    //         }
-    //     }
-    // }
-    // res = calculate(res, sign, second);
-    //
-    // console.log(res);
-    return eval(readyFrame);
-}
+    var res = 0;
+    var sign = "+";
+    var value = "";
 
-function isNumber(symbol) {
-   return symbol.match('\d') !== null;
+    for (var i = 0; i < readyFrame.length; i++) {
+        if (isSign(readyFrame[i])) {
+            res = calculate(Number(res), sign, Number(value));
+            sign = readyFrame[i];
+            value = "";
+        } else {
+            value = value + readyFrame[i];
+        }
+    }
+    res = calculate(Number(res), sign, Number(value));
+
+
+    return res;
 }
 
 function findAndCalculate(readyFrame, regexp, delimiter) {
+    readyFrame = String(readyFrame);
     while (true) {
         var match = readyFrame.match(regexp);
         if (match === null) break;
-        let matchedString = match[0];
-        let operators = matchedString.split(delimiter);
-        let sign = matchedString.replace(operators[0], "").replace(operators[1], "");
-        readyFrame = readyFrame.replace(matchedString, calculate(operators[0], sign, operators[1]))
+        var matchedString = match[0];
+        var operators = matchedString.split(delimiter);
+        var sign = matchedString.replace(operators[0], "").replace(operators[1], "");
+        var calculated = String(calculate(operators[0], sign, operators[1]));
+        if (operators[0][0] === '-' && operators[1][0] === '-') calculated = '+' + calculated;
+        if (calculated === '0') calculated = '+' + calculated;
+        readyFrame = readyFrame.replace(matchedString, calculated)
     }
     return readyFrame;
 }
-
 function calculate(res, sign, currentSymbol) {
     switch (sign) {
         case '+':
@@ -127,7 +120,6 @@ function calculate(res, sign, currentSymbol) {
 
 function isSign(symbol) {
     return symbol === '+' || symbol === '-' || symbol === '*' || symbol === '/';
-
 }
 
 module.exports = {
