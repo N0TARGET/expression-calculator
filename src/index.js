@@ -52,9 +52,7 @@ function calculateExpression(splitExpression) {
         stack.push(String(stack.pop()) + String(frame));
     }
     
-    var clearSigns1 = clearSigns(stack.pop());
-
-    return calculateFrame(clearSigns1);
+    return calculateFrame(stack.pop());
 }
 
 function clearSigns(readyFrame) {
@@ -67,7 +65,6 @@ function clearSigns(readyFrame) {
 function calculateFrame(readyFrame) {
     readyFrame = clearSigns(readyFrame);
     readyFrame = findAndCalculate(readyFrame, regMultiply, /[*\/]+/);
-    readyFrame = clearSigns(readyFrame);
 
     var res = 0;
     var sign = "+";
@@ -79,12 +76,10 @@ function calculateFrame(readyFrame) {
             sign = readyFrame[i];
             value = "";
         } else {
-            value = value + readyFrame[i];
+            value = readyFrame[i] === 'e' ? value : value + readyFrame[i];
         }
     }
     res = calculate(Number(res), sign, Number(value));
-
-
     return res;
 }
 
